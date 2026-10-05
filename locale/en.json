@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "QQ bridge",
+    "description": "Connect a local OneBot QQ client: follow group chats (mention-only or automatic), chat by private message, and let a marked account drive DSH from QQ."
+  }
+}

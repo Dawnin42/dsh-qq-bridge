@@ -1,0 +1,21 @@
+# Normalise line endings so a clone behaves the same everywhere.
+* text=auto
+
+# Windows-only helpers: CRLF, and the .ps1 files additionally carry a UTF-8 BOM
+# (Windows PowerShell 5.1 reads a BOM-less UTF-8 script as GBK, which turns every
+# non-ASCII comment into a syntax error). Never let a tool "clean" that up.
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+*.md   text eol=lf
+*.js   text eol=lf
+*.mjs  text eol=lf
+*.yml  text eol=lf
+*.json text eol=lf
+*.svg  text eol=lf
+
+# Binary
+*.png binary
+*.jpg binary
+*.gif binary
+*.webp binary

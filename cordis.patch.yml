@@ -1,0 +1,152 @@
+# dsh-qq-bridge bundle patch.
+#
+# Inserts the QQ bridge Host plugin into the profile composition. Every value
+# below is a default; edit them here (or override this row from your own
+# profile patch, which wins) and DSH applies the change on reload.
+#
+# The bridge needs a locally running OneBot v11 service (NapCat, SnowLuma,
+# Lagrange, LLOneBot, ...). Point `apiBaseUrl` at its HTTP API port and put the
+# same access token here. See README.zh.md for a step-by-step setup.
+
+- insert:
+    - id: qq-bridge
+      name: dsh-qq-bridge
+      config:
+        # Master switch. false = the plugin loads, registers its tools, and
+        # reports status, but never connects or sends anything.
+        enabled: true
+        # When true nothing is ever written to QQ: every outgoing message is
+        # logged and returned in the tool result instead. Useful for a first
+        # smoke test.
+        dryRun: false
+
+        # ---- OneBot v11 connection -------------------------------------
+        # HTTP API root of the OneBot service.
+        apiBaseUrl: 'http://127.0.0.1:3000'
+        # OneBot access token; sent as `Authorization: Bearer <token>`.
+        accessToken: ''
+        requestTimeoutMs: 15000
+
+        # ---- Event intake ----------------------------------------------
+        # The bridge runs its own loopback HTTP server and receives OneBot
+        # "HTTP POST report" events here. Configure the same URL in the
+        # OneBot client, e.g. http://127.0.0.1:8799/onebot
+        listenHost: '127.0.0.1'
+        listenPort: 8799
+        listenPath: '/onebot'
+        # Optional HMAC-SHA1 secret; when set, unsigned reports are rejected.
+        reportSecret: ''
+
+        # ---- Identity --------------------------------------------------
+        # Bot's own QQ number. Empty = discovered from get_login_info.
+        selfId: null
+        # QQ numbers allowed to drive DSH from a private message. Required for
+        # the remote-control channel; everyone else is handled per
+        # `privateFromOthers`.
+        # >>> Replace with your own QQ number. <<<
+        ownerIds:
+          - '123456789'
+        # 'ignore' = drop private messages from non-owners (default)
+        # 'chat'   = give each stranger their own DSH session that answers
+        privateFromOthers: 'ignore'
+
+        # ---- Group policy ----------------------------------------------
+        # 'off'     = never answer in a group unless it is listed below
+        # 'mention' = answer only when the bot is @-ed       (default)
+        # 'auto'    = follow the conversation and answer on its own
+        # Per-group overrides live in the `groups` map below and can also be
+        # changed at runtime with the qq_group_mode tool.
+        defaultGroupMode: 'mention'
+        # Per-group overrides: a bare mode, or a record with mode + prompt.
+        # `prompt` replaces the shared group persona FOR THAT GROUP ONLY — the
+        # reply mechanics, the clock and the current-group line are still
+        # appended by the plugin, so an override cannot break how it replies.
+        #   groups:
+        #     '123456': 'auto'
+        #     '654321':
+        #       mode: 'mention'
+        #       prompt: '这个群是同事群，说话正式一点，别开玩笑。'
+        # Both can also be edited at runtime (qq_group_mode / qq_group_prompt,
+        # or the QQ-bot settings page).
+        groups: {}
+        # Empty allowGroups = every group the bot is in.
+        allowGroups: []
+        denyGroups: []
+
+        # ---- Reply pacing ----------------------------------------------
+        # auto mode: how long the group must stay quiet before a turn starts
+        debounceMs: 12000
+        # mention mode: short window that merges rapid follow-up messages
+        mentionDebounceMs: 1200
+        # history lines handed to the model with every turn
+        contextMessages: 12
+        # per-chat turn budget per rolling hour.
+        # A busy `auto` group burns through this and then the bot goes quiet until
+        # the hour rolls. Raise it for chatty groups; lower it to cap model spend.
+        # Changeable at runtime — qq_config { action: "max_turns", value: 200 }
+        # or the QQ-bot settings page — no restart needed.
+        maxTurnsPerHour: 120
+        # per-chat retained message ring buffer (also used by qq_recent_messages)
+        maxBufferMessages: 120
+        # hard cap on the text of one delivered turn
+        maxCharsPerTurn: 6000
+
+        # ---- DSH sessions ----------------------------------------------
+        # Working directory for QQ sessions; empty = first DSH workspace.
+        cwd: null
+        # Agent preset id mounted for QQ sessions; empty = deployment default.
+        agentPreset: null
+        remote:
+          enabled: true
+          sessionId: 'qq-remote'
+          title: 'QQ 遥控'
+          # Send a short "received, working on it" note before a turn starts.
+          ack: true
+          # Tool allow-list for the remote session; null = inherit everything.
+          toolAllow: null
+        groupSessions:
+          sessionPrefix: 'qq-group-'
+          titlePrefix: 'QQ群 '
+          toolAllow:
+            - 'qq_*'
+            - 'web_search'
+            - 'web_fetch'
+        privateChat:
+          sessionPrefix: 'qq-user-'
+          titlePrefix: 'QQ '
+          toolAllow:
+            - 'qq_*'
+            - 'web_search'
+            - 'web_fetch'
+
+        # ---- Stickers --------------------------------------------------
+        # A folder of images the bot may send with qq_sticker / qq_reply's
+        # `sticker` parameter. Drop png / jpg / jpeg / gif / webp / bmp files in;
+        # the file name (without extension) is the sticker name.
+        stickers:
+          enabled: true
+          # Empty = <dataDir>/stickers
+          dir: null
+          maxBytes: 4194304
+
+        # ---- Login QR --------------------------------------------------
+        # While the OneBot client is logged out it writes its login QR here; the
+        # QQ-bot page shows that image, so a background client can be logged in
+        # from the browser without any visible window.
+        # NapCat: <root>/cache/qrcode.png (it rotates roughly every two minutes,
+        # so the page reads it on open and on every 刷新).
+        login:
+          qrcodePath: 'D:\NapCat\cache\qrcode.png'
+
+        # ---- Optional client launcher ----------------------------------
+        # Start the local OneBot client together with DSH. Leave disabled and
+        # launch NapCat / SnowLuma yourself unless you know the command.
+        client:
+          enabled: false
+          command: ''
+          args: []
+          cwd: ''
+
+        # ---- Misc ------------------------------------------------------
+        # Empty = <DSH profile dir>/.qq-bridge
+        dataDir: null

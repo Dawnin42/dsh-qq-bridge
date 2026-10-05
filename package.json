@@ -1,0 +1,66 @@
+{
+  "name": "dsh-qq-bridge",
+  "version": "0.1.0",
+  "description": "DSH <-> QQ bridge: read and answer group chats, and turn private messages from a marked owner account into DSH commands.",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "qq",
+    "onebot",
+    "napcat",
+    "chatbot"
+  ],
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "default": "./lib/client.js"
+    },
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json"
+  },
+  "files": [
+    "lib",
+    "locale",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh.md",
+    "LICENSE",
+    "icon.svg"
+  ],
+  "icon": "./icon.svg",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-ui-slots"
+      ]
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\"",
+    "mock": "node test/mock-onebot.mjs --port 3010"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dawnin42/dsh-qq-bridge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Dawnin42/dsh-qq-bridge/issues"
+  },
+  "homepage": "https://github.com/Dawnin42/dsh-qq-bridge#readme",
+  "author": "Dawnin42",
+  "license": "MIT"
+}
